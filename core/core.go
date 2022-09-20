@@ -19,7 +19,7 @@ const jsonFile = "assets/list.json"
 //time format
 const timeFormat = "2006-01-02 15:04:05"
 
-func Run() {
+func Run(testFlg bool) {
 	//read JSON file from disk
 	list := make(types.CheckInDatas, 0)
 	buf, err := util.GetLocalJSONBytes(jsonFile)
@@ -38,17 +38,23 @@ func Run() {
 		}
 		//http
 		fn := getCheckInFunc(v)
-		for _, vv := range v.Specs {
-			err := c.AddFunc(vv, fn)
-			if err != nil {
-				fail(err, &v)
-				return
+		if testFlg {
+			fn()
+		} else {
+			for _, vv := range v.Specs {
+				err := c.AddFunc(vv, fn)
+				if err != nil {
+					fail(err, &v)
+					return
+				}
 			}
 		}
 	}
-	c.Start()
-	defer c.Stop()
-	select {}
+	if !testFlg {
+		c.Start()
+		defer c.Stop()
+		select {}
+	}
 }
 
 func getCheckInFunc(v types.CheckInData) func() {
