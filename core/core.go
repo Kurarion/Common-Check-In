@@ -3,6 +3,7 @@ package core
 import (
 	types "CommonCheckIn/types"
 	util "CommonCheckIn/util"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -59,7 +60,11 @@ func Run(testFlg bool) {
 
 func getCheckInFunc(v types.CheckInData) func() {
 	return func() {
-		client := new(http.Client)
+		client := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		}
 		req, _ := http.NewRequest(strings.ToUpper(v.Method), v.Url, strings.NewReader(v.Payload))
 		for _, vv := range v.Headers {
 			req.Header.Add(vv.Key, vv.Value)
